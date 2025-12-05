@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path_helper;
 import '../../../features/health_records/models/health_record.dart';
+import '../../features/auth/models/user.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -20,8 +21,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       pathStr,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -29,7 +31,10 @@ class DatabaseHelper {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
     const integerType = 'INTEGER NOT NULL';
+    const realType = 'REAL';
+    const textNullable = 'TEXT';
 
+    // Health Records Table
     await db.execute('''
       CREATE TABLE health_records (
         id $idType,
@@ -39,6 +44,49 @@ class DatabaseHelper {
         water $integerType
       )
     ''');
+
+    // Users Table
+    await db.execute('''
+      CREATE TABLE users (
+        id $idType,
+        email TEXT UNIQUE NOT NULL,
+        password $textType,
+        name $textType,
+        age $integerType DEFAULT 0,
+        gender $textNullable,
+        height $realType DEFAULT 0.0,
+        weight $realType DEFAULT 0.0,
+        profile_image_path $textNullable,
+        created_at $textType,
+        updated_at $textType
+      )
+    ''');
+  }
+
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+      const textType = 'TEXT NOT NULL';
+      const integerType = 'INTEGER NOT NULL';
+      const realType = 'REAL';
+      const textNullable = 'TEXT';
+
+      await db.execute('''
+        CREATE TABLE users (
+          id $idType,
+          email TEXT UNIQUE NOT NULL,
+          password $textType,
+          name $textType,
+          age $integerType DEFAULT 0,
+          gender $textNullable,
+          height $realType DEFAULT 0.0,
+          weight $realType DEFAULT 0.0,
+          profile_image_path $textNullable,
+          created_at $textType,
+          updated_at $textType
+        )
+      ''');
+    }
   }
 
   // Create - Insert a new health record
@@ -214,6 +262,65 @@ class DatabaseHelper {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  // ============ USER METHODS ============
+  
+  // Create - Insert a new user
+  Future<int> insertUser(User user) async {
+    final db = await database;
+    return await db.insert('users', user.toMap());
+  }
+
+  // Read - Get user by email
+  Future<User?> getUserByEmail(String email) async {
+    final db = await database;
+    final result = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+    
+    if (result.isNotEmpty) {
+      return User.fromMap(result.first);
+    }
+    return null;
+  }
+
+  // Read - Get user by ID
+  Future<User?> getUserById(int id) async {
+    final db = await database;
+    final result = await db.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    
+    if (result.isNotEmpty) {
+      return User.fromMap(result.first);
+    }
+    return null;
+  }
+
+  // Update - Update user
+  Future<int> updateUser(User user) async {
+    final db = await database;
+    return await db.update(
+      'users',
+      user.toMap(),
+      where: 'id = ?',
+      whereArgs: [user.id],
+    );
+  }
+
+  // Delete - Delete user
+  Future<int> deleteUser(int id) async {
+    final db = await database;
+    return await db.delete(
+      'users',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   // Close the database

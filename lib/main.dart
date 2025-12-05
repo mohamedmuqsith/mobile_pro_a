@@ -6,7 +6,8 @@ import 'core/database/analytics_database_helper.dart';
 import 'features/health_records/providers/health_record_provider.dart';
 import 'features/analytics/providers/analytics_provider.dart';
 import 'features/analytics/services/analytics_service.dart';
-import 'features/health_records/screens/splash_screen.dart';
+import 'features/auth/providers/auth_provider.dart';
+import 'features/auth/screens/login_screen.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -40,12 +41,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AnalyticsProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'HealthMate',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
-        home: const SplashScreen(),
+        home: const LoginScreen(),
       ),
     );
   }

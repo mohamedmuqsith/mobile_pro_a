@@ -5,6 +5,8 @@ import '../widgets/summary_card.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../analytics/providers/analytics_provider.dart';
 import '../../analytics/screens/analytics_dashboard_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../recommendations/screens/recommendations_screen.dart';
 import 'add_record_screen.dart';
 import 'records_list_screen.dart';
 
@@ -35,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
     
     // Track navigation
-    final screenNames = ['Dashboard', 'Records', 'Analytics'];
+    final screenNames = ['Dashboard', 'Records', 'Analytics', 'Profile'];
     context.read<AnalyticsProvider>().trackScreenView(screenNames[index]);
   }
 
@@ -45,6 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const _DashboardContent(),
       const RecordsListScreen(),
       const AnalyticsDashboardScreen(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -68,9 +71,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icon(Icons.analytics),
             label: 'Analytics',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
-
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const RecommendationsScreen()),
+                );
+              },
+              backgroundColor: AppTheme.accentBlue,
+              icon: const Icon(Icons.lightbulb, color: Colors.white),
+              label: const Text('AI Tips', style: TextStyle(color: Colors.white)),
+            )
+          : null,
     );
   }
 }
