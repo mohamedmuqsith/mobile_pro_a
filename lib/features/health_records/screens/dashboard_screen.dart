@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/health_record_provider.dart';
 import '../widgets/summary_card.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../analytics/providers/analytics_provider.dart';
+import '../../analytics/screens/analytics_dashboard_screen.dart';
 import 'add_record_screen.dart';
 import 'records_list_screen.dart';
 
@@ -22,6 +24,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Load data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthRecordProvider>().initialize();
+      context.read<AnalyticsProvider>().initialize();
+      context.read<AnalyticsProvider>().trackScreenView('Dashboard');
     });
   }
 
@@ -29,6 +33,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    
+    // Track navigation
+    final screenNames = ['Dashboard', 'Records', 'Analytics'];
+    context.read<AnalyticsProvider>().trackScreenView(screenNames[index]);
   }
 
   @override
@@ -36,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final screens = [
       const _DashboardContent(),
       const RecordsListScreen(),
+      const AnalyticsDashboardScreen(),
     ];
 
     return Scaffold(
@@ -54,6 +63,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'Records',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: 'Analytics',
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/health_record.dart';
 import '../../../core/database/database_helper.dart';
+import '../../analytics/services/analytics_service.dart';
 
 class HealthRecordProvider extends ChangeNotifier {
   List<HealthRecord> _records = [];
@@ -83,6 +84,14 @@ class HealthRecordProvider extends ChangeNotifier {
       await _dbHelper.insertRecord(record);
       await loadRecords();
       await loadTodaySummary();
+      
+      // Track analytics
+      AnalyticsService.instance.trackRecordAdded(metadata: {
+        'steps': record.steps,
+        'calories': record.calories,
+        'water': record.water,
+      });
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -113,6 +122,12 @@ class HealthRecordProvider extends ChangeNotifier {
       await _dbHelper.updateRecord(record);
       await loadRecords();
       await loadTodaySummary();
+      
+      // Track analytics
+      AnalyticsService.instance.trackRecordUpdated(metadata: {
+        'record_id': record.id,
+      });
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -134,6 +149,12 @@ class HealthRecordProvider extends ChangeNotifier {
       await _dbHelper.deleteRecord(id);
       await loadRecords();
       await loadTodaySummary();
+      
+      // Track analytics
+      AnalyticsService.instance.trackRecordDeleted(metadata: {
+        'record_id': id,
+      });
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -157,6 +178,12 @@ class HealthRecordProvider extends ChangeNotifier {
 
     try {
       _filteredRecords = await _dbHelper.getRecordsByDate(date);
+      
+      // Track search analytics
+      AnalyticsService.instance.trackSearch(date, metadata: {
+        'results_count': _filteredRecords.length,
+      });
+      
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to search records: $e';
